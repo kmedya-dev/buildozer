@@ -288,20 +288,22 @@ class TargetIos(Target):
         if custom_ext_types:
             import ast
             custom_ext_types = ast.literal_eval(custom_ext_types)
+            plist["UTExportedTypeDeclarations"] = []
+            plist["CFBundleDocumentTypes"] = []
             for ext in custom_ext_types:
-                plist["UTExportedTypeDeclarations"] = [{
+                plist["UTExportedTypeDeclarations"].append({
                     'UTTypeConformsTo': ext[1],
                     'UTTypeIdentifier': ext[2],
                     'UTTypeDescription': ext[3],
                     'UTTypeIconFile': ext[4],
                     'UTTypeReferenceURL': ext[5],
-                    'UTTypeTagSpecification':{'public.filename-extension': ext[0]},}]
-                plist["CFBundleDocumentTypes"] =  [{
+                    'UTTypeTagSpecification':{'public.filename-extension': ext[0]},})
+                plist["CFBundleDocumentTypes"].append({
                     "CFBundleTypeName": ext[3],
                     "CFBundleTypeIconFile": ext[4],
                     "CFBundleTypeRole": "Editor",
                     "LSHandlerRank": "Owner",
-                    "LSItemContentTypes": [ext[2]],}]
+                    "LSItemContentTypes": [ext[2]],})
             plist["LSSupportsOpeningDocumentsInPlace"] = "NO"
             plist["UISupportsDocumentBrowser"] = "NO"
 
