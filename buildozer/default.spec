@@ -415,7 +415,7 @@ ios.codesign.allowed = false
 # ios.viewcontroller_based_statusbar_appearance = False
 
 # (str) A Xml String specifying a extension type.
-#ios.app_extensions = [["7zip", "zip"],  ["public.zip-archive"], "org.kivy.myappextensionfile", "<MyCuston> Extension File", "${MACOSX_BUNDLE_ICON_FILE}", "http://mysite.com/myapp/extensions.html"],
+#ios.app_extensions = [["7zip", "zip"],  ["public.zip-archive"], "org.kivy.myappextensionfile", "<MyCustom> Extension File", "${MACOSX_BUNDLE_ICON_FILE}", "http://mysite.com/myapp/extensions.html"],
 
 # (str) URL pointing to .ipa file to be installed
 # This option should be defined along with `display_image_url` and `full_size_image_url` options.
