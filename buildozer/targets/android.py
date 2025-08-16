@@ -1,3 +1,4 @@
+
 '''
 Android target, based on python-for-android project
 '''
@@ -10,15 +11,15 @@ if sys.platform == 'win32' and not os.getenv("KIVY_WIN32_ANDROID_EXPERIMENTAL"):
 from platform import uname
 WSL = 'microsoft' in uname()[2].lower()
 
-ANDROID_API = '31'
-ANDROID_MINAPI = '21'
-APACHE_ANT_VERSION = '1.9.4'
+ANDROID_API = '35'
+ANDROID_MINAPI = '24'
+APACHE_ANT_VERSION = '1.10.15'
 
 # This constant should *not* be updated, it is used only in the case
 # that python-for-android cannot provide a recommendation, which in
 # turn only happens if the python-for-android is old and probably
 # doesn't support any newer NDK.
-DEFAULT_ANDROID_NDK_VERSION = '17c'
+DEFAULT_ANDROID_NDK_VERSION = '27d'
 
 import ast
 from glob import glob
@@ -50,7 +51,7 @@ DEPRECATED_TOKENS = (('app', 'android.sdk'), )
 # because it doesn't seem to matter much, it is normally correct to
 # download once then update all the components as buildozer already
 # does.
-DEFAULT_SDK_TAG = '6514223'
+DEFAULT_SDK_TAG = '13114758'
 
 DEFAULT_ARCHS = ['arm64-v8a', 'armeabi-v7a']
 
@@ -64,8 +65,8 @@ MSG_P4A_RECOMMENDED_NDK_ERROR = (
 class TargetAndroid(Target):
     targetname = 'android'
     p4a_directory_name = "python-for-android"
-    p4a_fork = 'kivy'
-    p4a_branch = 'master'
+    p4a_fork = 'kmedya-dev'
+    p4a_branch = 'kmedya-dev-patch-2'
     p4a_commit = 'HEAD'
     p4a_recommended_ndk_version = None
     extra_p4a_args = ''
@@ -132,7 +133,7 @@ class TargetAndroid(Target):
         for section, token in DEPRECATED_TOKENS:
             value = self.buildozer.config.getdefault(section, token, None)
             if value is not None:
-                error = ('WARNING: Config token {} {} is deprecated and ignored, '
+                error = ('WARNING: Config token {} {} is deprecated and ignored, ' 
                          'but you set value {}').format(section, token, value)
                 self.logger.error(error)
 
@@ -159,12 +160,12 @@ class TargetAndroid(Target):
 
     @property
     def p4a_recommended_android_ndk(self):
-        """
+        '''
         Return the p4a's recommended android's NDK version, depending on the
         p4a version used for our buildozer build. In case that we don't find
         it, we will return the buildozer's recommended one, defined by global
         variable `DEFAULT_ANDROID_NDK_VERSION`.
-        """
+        '''
         # make sure to read p4a version only the first time
         if self.p4a_recommended_ndk_version is not None:
             return self.p4a_recommended_ndk_version
@@ -182,7 +183,7 @@ class TargetAndroid(Target):
                 ndk_version = line.replace(
                     "RECOMMENDED_NDK_VERSION =", "")
                 # clean version of unwanted characters
-                for i in {"'", '"', "\n", " "}:
+                for i in {'\'', '\'', "\n", " "}:
                     ndk_version = ndk_version.replace(i, "")
                 self.logger.info(
                     "Recommended android's NDK version by p4a is: {}".format(
@@ -258,13 +259,12 @@ class TargetAndroid(Target):
         sdk_manager_name = (
             'sdkmanager.bat'
             if platform in ('win32', 'cygwin')
-            else 'sdkmanager'
-        )
+            else 'sdkmanager')
         sdkmanager_path = join(
             self.android_sdk_dir, 'tools', 'bin', sdk_manager_name)
         if not os.path.isfile(sdkmanager_path):
             raise BuildozerException(
-                ('sdkmanager path "{}" does not exist, sdkmanager is not'
+                ('sdkmanager path "{}" does not exist, sdkmanager is not' 
                  ' installed'.format(sdkmanager_path)))
         return sdkmanager_path
 
@@ -279,7 +279,7 @@ class TargetAndroid(Target):
             except:
                 traceback.print_exc()
             self.adb_executable = join(self.android_sdk_dir, 'platform-tools',
-                                'adb.exe')
+                               'adb.exe')
             self.javac_cmd = self._locate_java('javac.exe')
             self.keytool_cmd = self._locate_java('keytool.exe')
         # darwin, linux, freebsd
@@ -293,7 +293,7 @@ class TargetAndroid(Target):
             if is_debian_like and \
                     not buildops.file_exists('/usr/include/zlib.h'):
                 raise BuildozerException(
-                    'zlib headers must be installed, '
+                    'zlib headers must be installed, ' 
                     'run: sudo apt-get install zlib1g-dev')
 
             # Override the OS which `sdkmanager` should download the packages for.
@@ -383,11 +383,11 @@ class TargetAndroid(Target):
 
         self.logger.info('Android SDK is missing, downloading')
         if platform in ('win32', 'cygwin'):
-            archive = 'commandlinetools-win-{}_latest.zip'.format(DEFAULT_SDK_TAG)
+            archive = 'commandlinetools-win-{0}_latest.zip'.format(DEFAULT_SDK_TAG)
         elif platform in ('darwin', ):
-            archive = 'commandlinetools-mac-{}_latest.zip'.format(DEFAULT_SDK_TAG)
+            archive = 'commandlinetools-mac-{0}_latest.zip'.format(DEFAULT_SDK_TAG)
         elif platform.startswith('linux') or platform.startswith('freebsd'):
-            archive = 'commandlinetools-linux-{}_latest.zip'.format(DEFAULT_SDK_TAG)
+            archive = 'commandlinetools-linux-{0}_latest.zip'.format(DEFAULT_SDK_TAG)
         else:
             raise SystemError('Unsupported platform: {0}'.format(platform))
 
@@ -460,7 +460,7 @@ class TargetAndroid(Target):
         else:
             url = 'https://dl.google.com/android/ndk/'
 
-        buildops.download(url,
+        buildops.download(url, 
                                 archive,
                                 cwd=self.buildozer.global_platform_dir)
 
@@ -570,7 +570,7 @@ class TargetAndroid(Target):
             self._android_update_sdk('--update')
         else:
             self.logger.info('Skipping Android SDK update due to spec file setting')
-            self.logger.info('Note: this also prevents installing missing '
+            self.logger.info('Note: this also prevents installing missing ' 
                                 'SDK components')
 
         # 2. install the latest build tool
@@ -757,7 +757,7 @@ class TargetAndroid(Target):
         try:
             with open(join(self.p4a_dir, "setup.py")) as fd:
                 setup = fd.read()
-                deps = re.findall(r"^\s*install_reqs = (\[[^\]]*\])", setup, re.DOTALL | re.MULTILINE)[0]
+                deps = re.findall(r"^\s*install_reqs = ((\[[^\]]*\]))", setup, re.DOTALL | re.MULTILINE)[0]
                 deps = ast.literal_eval(deps)
         except IOError:
             self.logger.error('Failed to read python-for-android setup.py at {}'.format(
@@ -789,7 +789,7 @@ class TargetAndroid(Target):
             self.buildozer.environ.update(source_dirs)
             self.logger.info('Using custom source dirs:\n    {}'.format(
                 '\n    '.join(['{} = {}'.format(k, v)
-                               for k, v in source_dirs.items()])))
+                               for k, v in source_dirs.items()]))) 
 
         if self.buildozer.config.getbooldefault('app', 'android.copy_libs', True):
             options.append("--copy-libs")
@@ -865,7 +865,6 @@ class TargetAndroid(Target):
         # support for copy-libs
         if self.buildozer.config.getbooldefault('app', 'android.copy_libs', True):
             cmd.append("--copy-libs")
-
         # Home-app usage
         if self.buildozer.config.getbooldefault('app', 'android.home_app', False):
             cmd.append("--home-app")
@@ -995,7 +994,7 @@ class TargetAndroid(Target):
             if key not in os.environ:
                 if error:
                     self.logger.error(
-                        ("Asking for release but {} is missing"
+                        ("Asking for release but {} is missing" 
                          "--sign will not be passed").format(key))
                 check = False
         return check
@@ -1062,7 +1061,8 @@ class TargetAndroid(Target):
             print('To set up p4a in this shell session, execute:')
             print('    alias p4a=$(buildozer {} p4a --alias 2>&1 >/dev/null)'
                   .format(self.targetname))
-            sys.stderr.write('PYTHONPATH={} {}\n'.format(self.p4a_dir, self._p4a_cmd))
+            sys.stderr.write('PYTHONPATH={} {}
+'.format(self.p4a_dir, self._p4a_cmd))
         else:
             self._p4a(args, env=self.buildozer.environ)
 
@@ -1523,7 +1523,7 @@ class TargetAndroid(Target):
         if self.buildozer.config.getdefault('app', 'android.logcat_pid_only'):
             pid = self._get_pid()
             if pid:
-                extra_args.extend(('--pid', pid))
+                extra_args.extend(( '--pid', pid))
 
         buildops.cmd(
             [self.adb_executable, *self.adb_args, "logcat", filters, *extra_args],
