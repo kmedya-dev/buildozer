@@ -58,11 +58,11 @@ setup(
     author='Mathieu Virbel',
     author_email='mat@kivy.org',
     url='https://github.com/kivy/buildozer',
-    project_urls={
-        'Website': "https://kivy.org",
-        'Documentation': "https://buildozer.readthedocs.io/en/stable/#",
-        'Source': "https://github.com/kivy/buildozer",
-        'Bug Reports': "https://github.com/kivy/buildozer/issues",
+   #project_urls={
+   #     'Website': "https://kivy.org",
+    #    'Documentation': "https://buildozer.readthedocs.io/en/stable/#",
+     #   'Source': "https://github.com/kivy/buildozer",
+       # 'Bug Reports': "https://github.com/kivy/buildozer/issues",
     },
     license='MIT',
     packages=[
@@ -79,7 +79,7 @@ setup(
         # here.
         # Restricted version because python-for-android's recipes can't handle
         # later versions.
-        'cython<3.0'
+       # 'cython<3.0'
     ],
     extras_require={
         'test': ['pytest'],
@@ -95,6 +95,8 @@ setup(
         'Programming Language :: Python :: 3.9',
         'Programming Language :: Python :: 3.10',
         'Programming Language :: Python :: 3.11',
+        'Programming Language :: Python :: 3.12',
+        'Programming Language :: Python :: 3.13',
     ],
     entry_points={
         'console_scripts': [
