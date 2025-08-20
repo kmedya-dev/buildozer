@@ -63,7 +63,7 @@ setup(
     #    'Documentation': "https://buildozer.readthedocs.io/en/stable/#",
      #   'Source': "https://github.com/kivy/buildozer",
        # 'Bug Reports': "https://github.com/kivy/buildozer/issues",
-    },
+    # },
     license='MIT',
     packages=[
         'buildozer', 'buildozer.targets', 'buildozer.libs', 'buildozer.scripts'
