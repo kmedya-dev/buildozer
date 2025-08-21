@@ -1061,8 +1061,7 @@ class TargetAndroid(Target):
             print('To set up p4a in this shell session, execute:')
             print('    alias p4a=$(buildozer {} p4a --alias 2>&1 >/dev/null)'
                   .format(self.targetname))
-            sys.stderr.write('PYTHONPATH={} {}
-'.format(self.p4a_dir, self._p4a_cmd))
+            sys.stderr.write('PYTHONPATH={} {}‌ \n'.format(self.p4a_dir, self._p4a_cmd))
         else:
             self._p4a(args, env=self.buildozer.environ)
 
