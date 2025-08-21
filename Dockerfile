@@ -80,6 +80,6 @@ WORKDIR ${WORK_DIR}
 COPY --chown=user:user . ${SRC_DIR}
 
 # installs buildozer and dependencies
-RUN pip3 install --user --upgrade "Cython<3.0" wheel pip ${SRC_DIR}
+RUN pip3 install --user --upgrade "cython" wheel pip ${SRC_DIR}
 
 ENTRYPOINT ["buildozer"]
