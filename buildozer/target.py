@@ -152,7 +152,7 @@ class Target:
     def cmd_serve(self, *args):
         self.buildozer.cmd_serve()
 
-    def path_or_git_url(self, repo, owner='kivy', branch='master',
+    def path_or_git_url(self, repo, owner='kmedya-dev', branch='main',
                         url_format='https://github.com/{owner}/{repo}.git',
                         platform=None,
                         squash_hyphen=True):
