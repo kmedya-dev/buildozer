@@ -20,14 +20,22 @@ jobs:
     - name: Setup Java
       uses: actions/setup-java@v4
       with:
-        java-version: '17'
+        java-version: '21'
         distribution: 'temurin'
     - uses: actions/checkout@v4
     - name: Setup environment
       run: |
         pip install .
     - run: buildozer --help
-    - run: buildozer init
+    - name: Init Buildozer
+      run: buildozer init
+      
+    - name: Upload buildozer.spec as artifact
+      uses: actions/upload-artifact@v4
+      with:
+        name: buildozer-spec
+        path: buildozer.spec
+        
     - name: SDK, NDK and p4a download
       run: |
         sed -i.bak "s/# android.accept_sdk_license = False/android.accept_sdk_license = True/" buildozer.spec
@@ -42,7 +50,12 @@ jobs:
     - name: Debug Build
       run: |
         touch main.py
-        buildozer android debug
+        buildozer -v android debug
+    - name: Upload APK
+      uses: actions/upload-artifact@v4
+      with:
+        name: myapp-apk
+        path: bin/*.apk
     - name: Release Build (aab)
       run: |
         touch main.py

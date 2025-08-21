@@ -204,7 +204,7 @@ class TestTargetAndroid:
         ]
         platform_map = {"linux": "linux", "darwin": "mac"}
         platform = platform_map[platform]
-        archive = "commandlinetools-{platform}-6514223_latest.zip".format(platform=platform)
+        archive = "commandlinetools-{platform}-13114758_latest.zip".format(platform=platform)
         assert m_download.call_args_list == [
             mock.call(
                 "https://dl.google.com/android/repository/",
