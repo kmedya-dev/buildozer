@@ -28,14 +28,14 @@ install it on Python {}.{}.
 
 
 def find_version(*file_paths):
-    # Open in Latin-1 so that we avoid encoding errors.
+    # Open in Latin-1 so that that we avoid encoding errors.
     # Use codecs.open for Python 2 compatibility
     with codecs.open(os.path.join(here, *file_paths), 'r', 'utf-8') as f:
         version_file = f.read()
 
     # The version line must have the form
     # __version__ = 'ver'
-    version_match = re.search(r"^__version__ = ['"]([^'"']*)['"]",
+    version_match = re.search(r"^__version__ = [\'\"]([^\'\"]*)[\'\"]",
                               version_file, re.M)
     if version_match:
         return version_match.group(1)
@@ -79,11 +79,7 @@ setup(
         # here.
         # Restricted version because python-for-android's recipes can't handle
         # later versions.
-<<<<<<< HEAD
-                'cython==3.1.3'
-=======
-        'cython'
->>>>>>> 6949ca7de190eb06e4ab5bac9204033b126901a1
+        'cython==3.1.3'
     ],
     extras_require={
         'test': ['pytest'],
