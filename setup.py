@@ -79,11 +79,7 @@ setup(
         # here.
         # Restricted version because python-for-android's recipes can't handle
         # later versions.
-<<<<<<< HEAD
-                'cython==3.1.3'
-=======
-        'cython'
->>>>>>> 6949ca7de190eb06e4ab5bac9204033b126901a1
+        'cython==3.1.3'
     ],
     extras_require={
         'test': ['pytest'],
