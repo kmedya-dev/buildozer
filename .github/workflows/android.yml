@@ -29,12 +29,6 @@ jobs:
     - run: buildozer --help
     - name: Init Buildozer
       run: buildozer init
-      
-    - name: Upload buildozer.spec as artifact
-      uses: actions/upload-artifact@v4
-      with:
-        name: buildozer-spec
-        path: buildozer.spec
         
     - name: SDK, NDK and p4a download
       run: |
@@ -56,6 +50,13 @@ jobs:
       with:
         name: myapp-apk
         path: bin/*.apk
+      
+    - name: Upload buildozer.spec as artifact
+      uses: actions/upload-artifact@v4
+      with:
+        name: buildozer-spec
+        path: buildozer.spec
+        
     - name: Release Build (aab)
       run: |
         touch main.py
