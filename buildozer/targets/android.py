@@ -66,7 +66,7 @@ class TargetAndroid(Target):
     targetname = 'android'
     p4a_directory_name = "python-for-android"
     p4a_fork = 'kmedya-dev'
-    p4a_branch = 'kmedya-dev-patch-2'
+    p4a_branch = 'main'
     p4a_commit = 'HEAD'
     p4a_recommended_ndk_version = None
     extra_p4a_args = ''
