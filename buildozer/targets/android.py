@@ -757,7 +757,7 @@ class TargetAndroid(Target):
         try:
             with open(join(self.p4a_dir, "setup.py")) as fd:
                 setup = fd.read()
-                deps = re.findall(r"^\s*install_reqs = ((\[[^\]]*\]))", setup, re.DOTALL | re.MULTILINE)[0]
+                deps = re.findall(r"^\s*install_reqs = (\[.*?\])", setup, re.DOTALL | re.MULTILINE)[0]
                 deps = ast.literal_eval(deps)
         except IOError:
             self.logger.error('Failed to read python-for-android setup.py at {}'.format(

@@ -35,7 +35,7 @@ def find_version(*file_paths):
 
     # The version line must have the form
     # __version__ = 'ver'
-    version_match = re.search(r"^__version__ = ['\"]([^'\"]*)['\"]",
+    version_match = re.search(r"^__version__ = ['"]([^'"']*)['"]",
                               version_file, re.M)
     if version_match:
         return version_match.group(1)
@@ -79,7 +79,7 @@ setup(
         # here.
         # Restricted version because python-for-android's recipes can't handle
         # later versions.
-        'cython<3.0'
+        'cython==3.1.3'
     ],
     extras_require={
         'test': ['pytest'],
