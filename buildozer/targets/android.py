@@ -1083,9 +1083,18 @@ class TargetAndroid(Target):
             self._p4a(args, env=self.buildozer.environ)
 
     def cmd_clean(self, *args):
-        '''
-        Clean the build and distribution
-        '''
+        """
+        Clean the buildozer android builds safely.
+        If python-for-android is not installed yet, just skip.
+        """
+        import os
+        p4a_dir = os.path.join(self.buildozer.platform_dir, "python-for-android")
+        if not os.path.exists(p4a_dir):
+            self.logger.info(
+                "Skipping clean: python-for-android not installed yet"
+            )
+            return
+
         self._p4a(["clean_builds"], env=self.buildozer.environ)
         self._p4a(["clean_dists"], env=self.buildozer.environ)
 
