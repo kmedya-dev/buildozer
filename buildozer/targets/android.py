@@ -234,6 +234,15 @@ class TargetAndroid(Target):
 
     @property
     def android_ndk_dir(self):
+        # Check for NDK in the SDK directory first.
+        # This is a common setup in CI environments.
+        sdk_ndk_path = join(self.android_sdk_dir, 'ndk')
+        if buildops.file_exists(sdk_ndk_path):
+            ndk_versions = os.listdir(sdk_ndk_path)
+            if ndk_versions:
+                # Use the first NDK found in the directory.
+                return join(sdk_ndk_path, ndk_versions[0])
+
         directory = expanduser(self.buildozer.config.getdefault(
             'app', 'android.ndk_path', ''))
         if directory:
