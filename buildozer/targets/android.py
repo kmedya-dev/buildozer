@@ -415,6 +415,14 @@ class TargetAndroid(Target):
             cwd=sdk_dir,
             env=self.buildozer.environ)
 
+        # The new command line tools are extracted to a directory named
+        # `cmdline-tools`. We need to move the contents of that directory to
+        # the `tools` directory.
+        cmdline_tools_dir = join(sdk_dir, 'cmdline-tools')
+        tools_dir = join(sdk_dir, 'tools')
+        if buildops.file_exists(cmdline_tools_dir) and not buildops.file_exists(tools_dir):
+            buildops.rename(cmdline_tools_dir, tools_dir)
+
         self.logger.info('Android SDK tools base installation done.')
 
         return sdk_dir
