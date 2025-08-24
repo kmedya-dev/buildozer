@@ -7,19 +7,19 @@ import os
 import sys
 if sys.platform == 'win32' and not os.getenv("KIVY_WIN32_ANDROID_EXPERIMENTAL"):
     raise NotImplementedError('Windows platform not yet working for Android')
-
 from platform import uname
 WSL = 'microsoft' in uname()[2].lower()
 
+DEFAULT_CMDLINE_TOOLS_TAG = '11076708'
 ANDROID_API = '35'
 ANDROID_MINAPI = '24'
 APACHE_ANT_VERSION = '1.10.15'
+DEFAULT_ANDROID_NDK_VERSION = '27d'
 
 # This constant should *not* be updated, it is used only in the case
 # that python-for-android cannot provide a recommendation, which in
 # turn only happens if the python-for-android is old and probably
 # doesn't support any newer NDK.
-DEFAULT_ANDROID_NDK_VERSION = '27d'
 
 import ast
 from glob import glob
@@ -33,6 +33,7 @@ from shutil import which
 from sys import platform, executable
 from time import sleep
 import traceback
+import subprocess
 
 import packaging.version
 import pexpect
@@ -51,8 +52,6 @@ DEPRECATED_TOKENS = (('app', 'android.sdk'), )
 # because it doesn't seem to matter much, it is normally correct to
 # download once then update all the components as buildozer already
 # does.
-DEFAULT_SDK_TAG = '13114758'
-
 DEFAULT_ARCHS = ['arm64-v8a', 'armeabi-v7a']
 
 MSG_P4A_RECOMMENDED_NDK_ERROR = (
@@ -263,19 +262,7 @@ class TargetAndroid(Target):
         return join(self.buildozer.global_platform_dir,
                     'apache-ant-{0}'.format(version))
 
-    @property
-    def sdkmanager_path(self):
-        sdk_manager_name = (
-            'sdkmanager.bat'
-            if platform in ('win32', 'cygwin')
-            else 'sdkmanager')
-        sdkmanager_path = join(
-            self.android_sdk_dir, 'tools', 'bin', sdk_manager_name)
-        if not os.path.isfile(sdkmanager_path):
-            raise BuildozerException(
-                ('sdkmanager path "{}" does not exist, sdkmanager is not' 
-                 ' installed'.format(sdkmanager_path)))
-        return sdkmanager_path
+    
 
     @property
     def archs_snake(self):
@@ -327,6 +314,47 @@ class TargetAndroid(Target):
         buildops.checkbin('Cython (cython)', 'cython')
         buildops.checkbin('Java compiler (javac)', self.javac_cmd)
         buildops.checkbin('Java keytool (keytool)', self.keytool_cmd)
+
+    def ensure_sdk(self):
+        sdk_dir = os.path.join(self.buildozer.global_platform_dir, "android-sdk")
+        sdkmanager = os.path.join(sdk_dir, "cmdline-tools", "latest", "bin", "sdkmanager")
+
+        # 1. Check if SDK is present
+        if not os.path.exists(sdkmanager):
+            self.logger.info("Android SDK not found, installing...")
+            self.install_sdk(sdk_dir)
+
+        # 2. License accept
+        self.accept_licenses(sdkmanager)
+
+        # 3. NDK install
+        self.install_ndk(sdkmanager)
+
+    def install_sdk(self, sdk_dir):
+        os.makedirs(sdk_dir, exist_ok=True)
+        # Create the cmdline-tools/latest directory first
+        cmdline_tools_latest_dir = os.path.join(sdk_dir, "cmdline-tools", "latest")
+        os.makedirs(cmdline_tools_latest_dir, exist_ok=True)
+
+        cmdline_tools_tag = self.buildozer.config.getdefault('app', 'android.cmdline_tools_tag', DEFAULT_CMDLINE_TOOLS_TAG)
+        url = f"https://dl.google.com/android/repository/commandlinetools-linux-{cmdline_tools_tag}_latest.zip"
+        zip_path = os.path.join(cmdline_tools_latest_dir, "cmdline-tools.zip") # Download into the target directory
+        buildops.download(url, zip_path)
+        buildops.file_extract(zip_path, cwd=cmdline_tools_latest_dir) # Extract into the target directory
+
+    def accept_licenses(self, sdkmanager):
+        try:
+            buildops.cmd([sdkmanager, "--licenses"], cwd=self.buildozer.global_platform_dir, break_on_error=False, show_output=True)
+        except Exception as e:
+            raise BuildozerException(f"Failed to accept licenses: {e}")
+
+    def install_ndk(self, sdkmanager):
+        ndk_version = self.buildozer.config.getdefault('app', 'android.ndk', DEFAULT_ANDROID_NDK_VERSION)
+        try:
+            self.logger.info(f"Installing NDK (version {ndk_version})...")
+            buildops.cmd([sdkmanager, f"ndk;{ndk_version}"], cwd=self.buildozer.global_platform_dir, show_output=True)
+        except Exception as e:
+            raise BuildozerException(f"Failed to install NDK: {e}")
 
     def _p4a_have_aab_support(self):
         returncode = self._p4a(
@@ -384,114 +412,9 @@ class TargetAndroid(Target):
         self.logger.info('Apache ANT installation done.')
         return ant_dir
 
-    def _install_android_sdk(self):
-        sdk_dir = self.android_sdk_dir
-        if buildops.file_exists(sdk_dir):
-            self.logger.info('Android SDK found at {0}'.format(sdk_dir))
-            return sdk_dir
+    
 
-        self.logger.info('Android SDK is missing, downloading')
-        if platform in ('win32', 'cygwin'):
-            archive = 'commandlinetools-win-{0}_latest.zip'.format(DEFAULT_SDK_TAG)
-        elif platform in ('darwin', ):
-            archive = 'commandlinetools-mac-{0}_latest.zip'.format(DEFAULT_SDK_TAG)
-        elif platform.startswith('linux') or platform.startswith('freebsd'):
-            archive = 'commandlinetools-linux-{0}_latest.zip'.format(DEFAULT_SDK_TAG)
-        else:
-            raise SystemError('Unsupported platform: {0}'.format(platform))
-
-        if not os.path.exists(sdk_dir):
-            os.makedirs(sdk_dir)
-
-        url = 'https://dl.google.com/android/repository/'
-        buildops.download(
-            url,
-            archive,
-            cwd=sdk_dir)
-
-        self.logger.info('Unpacking Android SDK')
-        buildops.file_extract(
-            archive,
-            cwd=sdk_dir,
-            env=self.buildozer.environ)
-
-        # The new command line tools are extracted to a directory named
-        # `cmdline-tools`. We need to move the contents of that directory to
-        # the `tools` directory.
-        cmdline_tools_dir = join(sdk_dir, 'cmdline-tools')
-        tools_dir = join(sdk_dir, 'tools')
-        if buildops.file_exists(cmdline_tools_dir) and not buildops.file_exists(tools_dir):
-            buildops.rename(cmdline_tools_dir, tools_dir)
-
-        self.logger.info('Android SDK tools base installation done.')
-
-        return sdk_dir
-
-    def _install_android_ndk(self):
-        ndk_dir = self.android_ndk_dir
-        if buildops.file_exists(ndk_dir):
-            self.logger.info('Android NDK found at {0}'.format(ndk_dir))
-            return ndk_dir
-
-        import re
-        _version = int(re.search(r'(\d+)', self.android_ndk_version).group(1))
-
-        self.logger.info('Android NDK is missing, downloading')
-        # Welcome to the NDK URL hell!
-        # a list of all NDK URLs up to level 14 can be found here:
-        #  https://gist.github.com/roscopecoltran/43861414fbf341adac3b6fa05e7fad08
-        # it seems that from level 11 on the naming schema is consistent
-        # from 10e on the URLs can be looked up at
-        # https://developer.android.com/ndk/downloads/older_releases
-
-        is_darwin = platform == 'darwin'
-        is_linux = platform.startswith('linux')
-        is_freebsd = platform.startswith('freebsd')
-
-        if platform in ('win32', 'cygwin'):
-            # Checking of 32/64 bits at Windows from: https://stackoverflow.com/a/1405971/798575
-            import struct
-            archive = 'android-ndk-r{0}-windows.zip'
-            is_64 = (8 * struct.calcsize("P") == 64)
-        elif is_darwin or is_linux or is_freebsd:
-            _platform = 'linux' if (is_linux or is_freebsd) else 'darwin'
-            if self.android_ndk_version in ['10c', '10d', '10e']:
-                ext = 'bin'
-            elif _version <= 10:
-                ext = 'tar.bz2'
-            else:
-                ext = 'zip'
-            archive = 'android-ndk-r{0}-' + _platform + '{1}.' + ext
-            is_64 = ('64' in os.uname()[4])
-        else:
-            raise SystemError('Unsupported platform: {}'.format(platform))
-
-        architecture = 'x86_64' if is_64 else 'x86'
-        architecture = '' if _version >= 23 else f'-{architecture}'
-        unpacked = 'android-ndk-r{0}'
-        archive = archive.format(self.android_ndk_version, architecture)
-        unpacked = unpacked.format(self.android_ndk_version)
-
-        if _version >= 11:
-            url = 'https://dl.google.com/android/repository/'
-        else:
-            url = 'https://dl.google.com/android/ndk/'
-
-        buildops.download(url, 
-                                archive,
-                                cwd=self.buildozer.global_platform_dir)
-
-        self.logger.info('Unpacking Android NDK')
-        buildops.file_extract(
-            archive,
-            cwd=self.buildozer.global_platform_dir,
-            env=self.buildozer.environ)
-        buildops.rename(
-            unpacked,
-            ndk_dir,
-            cwd=self.buildozer.global_platform_dir)
-        self.logger.info('Android NDK installation done.')
-        return ndk_dir
+    
 
     def _android_list_build_tools_versions(self):
         available_packages = self._sdkmanager('--list')
@@ -658,9 +581,8 @@ class TargetAndroid(Target):
     def install_platform(self):
         self._install_p4a()
         self._install_apache_ant()
-        self._install_android_sdk()
-        self._install_android_ndk()
-        self._install_android_packages()
+        self.ensure_sdk() # Call the new method
+        self._install_android_packages() # This method might need adjustments later
 
         # ultimate configuration check.
         # some of our configuration cannot be checked without platform.
@@ -675,7 +597,7 @@ class TargetAndroid(Target):
         self.buildozer.environ.update({
             'PACKAGES_PATH': self.buildozer.global_packages_dir,
             'ANDROIDSDK': self.android_sdk_dir,
-            'ANDROIDNDK': self.android_ndk_dir,
+            'ANDROIDNDK': self.buildozer.config.getdefault('app', 'android.ndk_path', ''), # NDK path is now managed by ensure_sdk
             'ANDROIDAPI': self.android_api,
             'ANDROIDMINAPI': self.android_minapi,
         })
