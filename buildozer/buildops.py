@@ -397,7 +397,6 @@ def _report_download_progress(bytes_read, total_size):
 
 def download(url, filename, cwd=None):
     """Download the file at url/filename to filename"""
-    url = url + str(filename)
 
     LOGGER.debug("Downloading {0}".format(url))
 
